@@ -1,3 +1,5 @@
+import type { PerformancePoint, SummaryRow, Transaction } from './types';
+
 /**
  * Prisma Decimal columns are serialized as strings. Every numeric field coming from the API
  * passes through here so the rest of the app only ever sees numbers.
@@ -10,13 +12,42 @@ export function toNullableNumber(value: unknown): number | null {
     return value === null || value === undefined ? null : toNumber(value);
 }
 
-export function mapNumbers<T extends object>(
-    row: T,
-    keys: readonly (keyof T)[],
-    nullable: readonly (keyof T)[] = [],
-): T {
-    const out = { ...row } as Record<keyof T, unknown>;
-    for (const key of keys) out[key] = toNumber(row[key]);
-    for (const key of nullable) out[key] = toNullableNumber(row[key]);
-    return out as T;
+/** `operatedAt` arrives as `2025-01-10T00:00:00.000Z`; keep the calendar date so time zones can't shift it. */
+export function toDateOnly(value: string): string {
+    return value.slice(0, 10);
+}
+
+export function mapTransaction(t: Transaction): Transaction {
+    return {
+        ...t,
+        operatedAt: toDateOnly(t.operatedAt),
+        quantity: toNumber(t.quantity),
+        pricePerShare: toNumber(t.pricePerShare),
+        fees: toNumber(t.fees),
+    };
+}
+
+export function mapSummaryRow(r: SummaryRow): SummaryRow {
+    return {
+        ...r,
+        position: toNumber(r.position),
+        averageCost: toNumber(r.averageCost),
+        invested: toNumber(r.invested),
+        currentPrice: toNullableNumber(r.currentPrice),
+        currentValue: toNullableNumber(r.currentValue),
+        gain: toNumber(r.gain),
+        gainPct: toNullableNumber(r.gainPct),
+        feesInRange: toNumber(r.feesInRange),
+    };
+}
+
+export function mapPerformancePoint(p: PerformancePoint): PerformancePoint {
+    return {
+        ...p,
+        date: toDateOnly(p.date),
+        position: toNumber(p.position),
+        value: toNullableNumber(p.value),
+        invested: toNumber(p.invested),
+        price: toNullableNumber(p.price),
+    };
 }

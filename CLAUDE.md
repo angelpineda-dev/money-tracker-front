@@ -46,3 +46,5 @@ chore, revert. Imperative lowercase subject, max 72 chars. Breaking changes use 
 
 - No `GET /api/users`, and `/me` has no `id`: the role-change screen waits on both.
 - openapi.yaml says the access token lasts 4h; the backend actually uses 15m.
+- `/me` doesn't say whether Telegram is linked, so Settings always offers "Desvincular".
+- `operatedAt` comes back as a full ISO datetime; `mapTransaction` trims it to `YYYY-MM-DD` so time zones can't shift it.

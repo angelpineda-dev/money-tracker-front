@@ -7,9 +7,11 @@ export type User = Required<Schemas['User']>;
 export type Role = User['role'];
 export type Asset = Required<Schemas['Asset']>;
 export type Currency = Asset['currency'];
-export type Transaction = Required<Schemas['Transaction']>;
-export type TransactionType = Transaction['type'];
-export type SummaryRow = Required<Schemas['SummaryRow']>;
+export type TransactionType = Required<Schemas['Transaction']>['type'];
+export type Transaction = Omit<Required<Schemas['Transaction']>, 'asset'> & {
+    asset: { symbol: string; currency: Currency };
+};
+export type SummaryRow = Omit<Required<Schemas['SummaryRow']>, 'asset'> & { asset: Asset };
 export type PerformancePoint = Required<Schemas['PerformancePoint']>;
 
 type JsonBody<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
