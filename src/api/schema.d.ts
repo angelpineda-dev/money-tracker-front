@@ -682,7 +682,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Crear activo */
+        /**
+         * Crear activo
+         * @description Tras crear el activo se intenta obtener su precio actual de Yahoo Finance (un solo intento) para no esperar al cron diario; si falla, el activo se crea igual sin precio.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1389,10 +1392,10 @@ export interface components {
             /** @example 8625 */
             currentValue?: number | null;
             /**
-             * @description Ganancia del rango: valor_final + ventas_rango − valor_inicio − compras_rango
+             * @description Ganancia del rango: valor_final + ventas_rango − valor_inicio − compras_rango. null cuando hay posición abierta y falta el precio al inicio o al final del rango (no se asume 0, para no inventar una pérdida total).
              * @example 1040
              */
-            gain?: number;
+            gain?: number | null;
             /**
              * @description gain / (valor_inicio + compras_rango)
              * @example 0.094

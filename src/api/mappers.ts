@@ -39,7 +39,7 @@ export function mapSummaryRow(r: SummaryRow): SummaryRow {
         invested: toNumber(r.invested),
         currentPrice: toNullableNumber(r.currentPrice),
         currentValue: toNullableNumber(r.currentValue),
-        gain: toNumber(r.gain),
+        gain: toNullableNumber(r.gain),
         gainPct: toNullableNumber(r.gainPct),
         feesInRange: toNumber(r.feesInRange),
     };

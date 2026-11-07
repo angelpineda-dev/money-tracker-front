@@ -1,6 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { mapAssetListItem, mapTransaction } from './mappers';
-import type { AssetListItem, Transaction } from './types';
+import { mapAssetListItem, mapSummaryRow, mapTransaction } from './mappers';
+import type { AssetListItem, SummaryRow, Transaction } from './types';
+
+describe('mapSummaryRow', () => {
+    const raw = {
+        asset: { id: 5, symbol: 'LAB B', name: 'Genoma lab', currency: 'MXN' },
+        position: '352',
+        averageCost: 14.3,
+        invested: 5032.77,
+        currentPrice: null,
+        currentValue: null,
+        gain: null,
+        gainPct: null,
+        feesInRange: '12.54',
+    } as unknown as SummaryRow;
+
+    it('keeps an unknown gain as null instead of coercing it to 0', () => {
+        expect(mapSummaryRow(raw)).toMatchObject({ gain: null, gainPct: null, currentValue: null });
+    });
+
+    it('coerces numeric strings', () => {
+        expect(mapSummaryRow(raw)).toMatchObject({ position: 352, feesInRange: 12.54 });
+    });
+});
 
 describe('mapAssetListItem', () => {
     const base = { id: 1, symbol: 'CUERVO.MX', name: 'Becle', currency: 'MXN' } as const;

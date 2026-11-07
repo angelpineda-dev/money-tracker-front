@@ -26,7 +26,7 @@ export function TotalsCards({ totals }: { totals: CurrencyTotals[] }) {
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
                                 <Chip label={t.currency} size="small" color="primary" variant="outlined" />
                                 {t.missingPrices && (
-                                    <Tooltip title="Algunos activos no tienen precio actual. Actualiza precios en Administración.">
+                                    <Tooltip title="Algunos activos no tienen precio actual; los precios se actualizan cada día hábil al cierre de mercado.">
                                         <Chip
                                             label="Precios incompletos"
                                             size="small"
