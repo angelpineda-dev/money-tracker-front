@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { SnackbarProvider } from 'notistack';
 import { describe, expect, it, vi } from 'vitest';
-import type { SymbolMatch } from '@/api/types';
+import type { Asset, SymbolMatch } from '@/api/types';
 import { API, server } from '@/test/server';
 import { AssetDialog } from './AssetDialog';
 
@@ -17,12 +17,14 @@ const CUERVO: SymbolMatch = {
 };
 const AAPL: SymbolMatch = { symbol: 'AAPL', name: 'Apple Inc.', currency: 'USD', exchange: 'NASDAQ', type: 'EQUITY' };
 
-function renderDialog() {
+const EXISTING: Asset = { id: 7, symbol: 'CUERV.MX', name: 'Mi cuervo', currency: 'MXN' };
+
+function renderDialog(asset: Asset | null = null) {
     const onClose = vi.fn();
     render(
         <QueryClientProvider client={new QueryClient()}>
             <SnackbarProvider>
-                <AssetDialog open asset={null} onClose={onClose} />
+                <AssetDialog open asset={asset} onClose={onClose} />
             </SnackbarProvider>
         </QueryClientProvider>,
     );
@@ -87,5 +89,31 @@ describe('AssetDialog symbol search', () => {
         await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
         await waitFor(() => expect(posted).toEqual({ symbol: 'CUERVO.MX', name: CUERVO.name, currency: 'MXN' }));
+    });
+
+    it('edit mode: no search on open, suggestions after typing, name is kept on pick', async () => {
+        const searched: string[] = [];
+        server.use(
+            http.get(`${API}/api/assets/search`, ({ request }) => {
+                searched.push(new URL(request.url).searchParams.get('q') ?? '');
+                return HttpResponse.json({ success: true, data: [CUERVO] });
+            }),
+        );
+        const user = userEvent.setup();
+        renderDialog(EXISTING);
+
+        const symbol = screen.getByRole('combobox', { name: 'Símbolo' });
+        await waitFor(() => expect(symbol).toHaveValue('CUERV.MX'));
+        await new Promise((r) => setTimeout(r, 600));
+        expect(searched).toEqual([]);
+
+        await user.clear(symbol);
+        await user.type(symbol, 'cuervo');
+        await user.click(await screen.findByText('CUERVO.MX', {}, { timeout: 2000 }));
+
+        expect(searched).toEqual(['cuervo']);
+        expect(symbol).toHaveValue('CUERVO.MX');
+        expect(screen.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Mi cuervo');
+        expect(screen.getByRole('combobox', { name: 'Moneda' })).toHaveAttribute('aria-disabled', 'true');
     });
 });

@@ -13,10 +13,12 @@ const DEBOUNCE_MS = 350;
 export function useSymbolSearch(input: string, enabled: boolean) {
     const q = useDebouncedValue(input.trim(), DEBOUNCE_MS);
     const active = enabled && q.length >= SYMBOL_SEARCH_MIN_CHARS;
+    // Don't fetch while the debounce is still catching up: right after enabling (edit mode) `q` is the stale prefilled symbol.
+    const settled = q === input.trim();
     const query = useQuery({
         queryKey: queryKeys.symbolSearch(q.toUpperCase()),
         queryFn: () => assetsApi.search(q),
-        enabled: active,
+        enabled: active && settled,
         staleTime: 10 * 60 * 1000,
         retry: false,
         placeholderData: keepPreviousData,
