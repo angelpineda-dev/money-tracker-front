@@ -28,6 +28,7 @@ export function mapTransaction(t: Transaction): Transaction {
         quantity: toNumber(t.quantity),
         pricePerShare: toNumber(t.pricePerShare),
         fees: toNumber(t.fees),
+        iva: toNumber(t.iva),
     };
 }
 

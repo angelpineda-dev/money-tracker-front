@@ -57,6 +57,7 @@ export function TransactionsTable({
                             <TableCell align="right">Títulos</TableCell>
                             <TableCell align="right">Precio</TableCell>
                             <TableCell align="right">Comisión</TableCell>
+                            <TableCell align="right">IVA</TableCell>
                             <TableCell align="right">Total</TableCell>
                             <TableCell>Notas</TableCell>
                             <TableCell />
@@ -65,7 +66,8 @@ export function TransactionsTable({
                     <TableBody>
                         {rows.map((t) => {
                             const c = t.asset.currency;
-                            const total = t.quantity * t.pricePerShare + (t.type === 'COMPRA' ? t.fees : -t.fees);
+                            const costs = t.fees + t.iva;
+                            const total = t.quantity * t.pricePerShare + (t.type === 'COMPRA' ? costs : -costs);
                             return (
                                 <TableRow key={t.id} hover>
                                     <TableCell>{formatDate(t.operatedAt)}</TableCell>
@@ -81,6 +83,7 @@ export function TransactionsTable({
                                     <TableCell align="right">{qty.format(t.quantity)}</TableCell>
                                     <TableCell align="right">{formatMoney(t.pricePerShare, c)}</TableCell>
                                     <TableCell align="right">{formatMoney(t.fees, c)}</TableCell>
+                                    <TableCell align="right">{formatMoney(t.iva, c)}</TableCell>
                                     <TableCell align="right">{formatMoney(total, c)}</TableCell>
                                     <TableCell
                                         sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}

@@ -1362,8 +1362,16 @@ export interface components {
             quantity?: number;
             /** @example 32.5 */
             pricePerShare?: number;
-            /** @example 45 */
+            /**
+             * @description Comisión del broker (sin IVA)
+             * @example 45
+             */
             fees?: number;
+            /**
+             * @description IVA calculado (16% de la comisión). 0 si el activo no es MXN
+             * @example 7.2
+             */
+            readonly iva?: number;
             notes?: string | null;
             asset?: {
                 symbol?: string;
@@ -1392,7 +1400,7 @@ export interface components {
             /** @example 8625 */
             currentValue?: number | null;
             /**
-             * @description Ganancia del rango: valor_final + ventas_rango − valor_inicio − compras_rango. null cuando hay posición abierta y falta el precio al inicio o al final del rango (no se asume 0, para no inventar una pérdida total).
+             * @description Ganancia del rango antes de comisiones e IVA (como el broker): valor_final + ventas_rango − valor_inicio − compras_rango, con ventas/compras al precio bruto. null cuando hay posición abierta y falta el precio al inicio o al final del rango (no se asume 0, para no inventar una pérdida total).
              * @example 1040
              */
             gain?: number | null;
@@ -1407,7 +1415,7 @@ export interface components {
             lastBuyDate?: string | null;
             /** @description Última compra hace menos de 7 días */
             boughtThisWeek?: boolean;
-            /** @description Comisiones pagadas en el rango solicitado */
+            /** @description Comisiones más IVA pagadas en el rango solicitado */
             feesInRange?: number;
             /**
              * Format: date

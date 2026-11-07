@@ -31,9 +31,9 @@ export function SummaryTable({ rows }: { rows: SummaryRow[] }) {
                         <TableCell align="right">Invertido</TableCell>
                         <TableCell align="right">Precio</TableCell>
                         <TableCell align="right">Valor</TableCell>
-                        <TableCell align="right">Ganancia</TableCell>
+                        <TableCell align="right">Ganancia (bruta)</TableCell>
                         <TableCell align="right">%</TableCell>
-                        <TableCell align="right">Comisiones</TableCell>
+                        <TableCell align="right">Comisiones + IVA</TableCell>
                         <TableCell />
                     </TableRow>
                 </TableHead>

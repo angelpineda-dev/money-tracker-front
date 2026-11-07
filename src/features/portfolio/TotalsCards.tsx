@@ -39,10 +39,10 @@ export function TotalsCards({ totals }: { totals: CurrencyTotals[] }) {
                             <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)' }}>
                                 <Stat label="Valor actual">{formatMoney(t.currentValue, t.currency)}</Stat>
                                 <Stat label="Invertido">{formatMoney(t.invested, t.currency)}</Stat>
-                                <Stat label="Ganancia en el rango">
+                                <Stat label="Ganancia en el rango (antes de comisiones)">
                                     <GainText value={t.gain}>{formatMoney(t.gain, t.currency)}</GainText>
                                 </Stat>
-                                <Stat label="Comisiones en el rango">{formatMoney(t.fees, t.currency)}</Stat>
+                                <Stat label="Comisiones + IVA en el rango">{formatMoney(t.fees, t.currency)}</Stat>
                             </Box>
                         </CardContent>
                     </Card>
