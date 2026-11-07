@@ -21,6 +21,15 @@ export function toApiError(error: unknown): ApiError {
     return new ApiError(0, error instanceof Error ? error.message : FALLBACK);
 }
 
+/**
+ * True only when the server rejected the credential itself (401/403). A 429, a 5xx or a network
+ * failure says nothing about the session, so callers must not drop it for those.
+ */
+export function isSessionRejected(error: unknown): boolean {
+    const { status } = toApiError(error);
+    return status === 401 || status === 403;
+}
+
 export function errorMessage(error: unknown): string {
     return toApiError(error).message;
 }

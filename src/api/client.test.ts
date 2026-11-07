@@ -45,6 +45,27 @@ describe('axios refresh interceptor', () => {
         expect(useAuthStore.getState()).toMatchObject({ accessToken: null, refreshToken: null, user: null });
     });
 
+    it('keeps the session when the refresh is rate limited', async () => {
+        server.use(
+            http.get(`${API}/api/assets`, () => HttpResponse.json({ success: false }, { status: 401 })),
+            http.post(`${API}/api/auth/refresh`, () =>
+                HttpResponse.json({ success: false, message: 'Too many requests' }, { status: 429 }),
+            ),
+        );
+
+        await expect(api.get('/api/assets')).rejects.toMatchObject({ response: { status: 429 } });
+        expect(useAuthStore.getState()).toMatchObject({ accessToken: 'expired', refreshToken: 'refresh-1' });
+    });
+
+    it('clears the session when there is no refresh token to use', async () => {
+        window.history.pushState({}, '', '/login');
+        useAuthStore.getState().clear();
+        server.use(http.get(`${API}/api/assets`, () => HttpResponse.json({ success: false }, { status: 401 })));
+
+        await expect(api.get('/api/assets')).rejects.toMatchObject({ response: { status: 401 } });
+        expect(useAuthStore.getState()).toMatchObject({ accessToken: null, refreshToken: null });
+    });
+
     it('does not try to refresh on auth endpoints', async () => {
         let refreshCalls = 0;
         server.use(

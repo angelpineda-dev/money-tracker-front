@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { queryClient } from '@/app/queryClient';
 import { useAuthStore } from '@/stores/authStore';
+import { ApiError, isSessionRejected } from './errors';
 import type { ApiEnvelope, TokenPair } from './types';
 
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -28,7 +29,8 @@ export function refreshSession(): Promise<string> {
     if (!refreshPromise) {
         refreshPromise = (async () => {
             const refreshToken = useAuthStore.getState().refreshToken;
-            if (!refreshToken) throw new Error('No refresh token');
+            // No token to exchange is the same as a rejected one: the session is over.
+            if (!refreshToken) throw new ApiError(401, 'No refresh token');
             const { data } = await refreshClient.post<ApiEnvelope<TokenPair>>('/api/auth/refresh', { refreshToken });
             if (!data.data) throw new Error('Respuesta de refresh inválida');
             useAuthStore.getState().setTokens(data.data.token, data.data.refreshToken);
@@ -58,7 +60,9 @@ api.interceptors.response.use(undefined, async (error: AxiosError) => {
     let token: string;
     try {
         token = await refreshSession();
-    } catch {
+    } catch (refreshError) {
+        // Rate limit, 5xx or no network: the session may still be valid, so keep it and surface that error.
+        if (!isSessionRejected(refreshError)) throw refreshError;
         endSession();
         throw error;
     }
