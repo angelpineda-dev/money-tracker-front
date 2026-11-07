@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { mapTransaction } from './mappers';
-import type { Transaction } from './types';
+import { mapAssetListItem, mapTransaction } from './mappers';
+import type { AssetListItem, Transaction } from './types';
+
+describe('mapAssetListItem', () => {
+    const base = { id: 1, symbol: 'CUERVO.MX', name: 'Becle', currency: 'MXN' } as const;
+
+    it('keeps a missing price as null', () => {
+        expect(mapAssetListItem({ ...base, currentPrice: null })).toMatchObject({ currentPrice: null });
+    });
+
+    it('coerces a Decimal string price to a number', () => {
+        const raw = { ...base, currentPrice: '34.5000' } as unknown as AssetListItem;
+        expect(mapAssetListItem(raw).currentPrice).toBe(34.5);
+    });
+});
 
 describe('mapTransaction', () => {
     it('coerces Decimal strings and trims the date', () => {

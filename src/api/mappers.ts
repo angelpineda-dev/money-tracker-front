@@ -1,4 +1,4 @@
-import type { PerformancePoint, SummaryRow, Transaction } from './types';
+import type { AssetListItem, PerformancePoint, SummaryRow, Transaction } from './types';
 
 /**
  * Prisma Decimal columns are serialized as strings. Every numeric field coming from the API
@@ -15,6 +15,10 @@ export function toNullableNumber(value: unknown): number | null {
 /** `operatedAt` arrives as `2025-01-10T00:00:00.000Z`; keep the calendar date so time zones can't shift it. */
 export function toDateOnly(value: string): string {
     return value.slice(0, 10);
+}
+
+export function mapAssetListItem(a: AssetListItem): AssetListItem {
+    return { ...a, currentPrice: toNullableNumber(a.currentPrice) };
 }
 
 export function mapTransaction(t: Transaction): Transaction {

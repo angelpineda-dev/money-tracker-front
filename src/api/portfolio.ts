@@ -1,12 +1,14 @@
 import { api, unwrap } from './client';
-import { mapPerformancePoint, mapSummaryRow, mapTransaction } from './mappers';
+import { mapAssetListItem, mapPerformancePoint, mapSummaryRow, mapTransaction } from './mappers';
 import type { DateRange } from './queryKeys';
 import type {
     Asset,
+    AssetListItem,
     CreateAssetBody,
     CreateTransactionBody,
     PerformancePoint,
     SummaryRow,
+    SymbolMatch,
     Transaction,
     TransactionType,
     UpdateAssetBody,
@@ -24,9 +26,10 @@ function params<T extends object>(obj: T): Partial<T> {
 }
 
 export const assetsApi = {
-    list: () => unwrap<Asset[]>(api.get('/api/assets')),
+    list: async () => (await unwrap<AssetListItem[]>(api.get('/api/assets'))).map(mapAssetListItem),
     create: (body: CreateAssetBody) => unwrap<Asset>(api.post('/api/assets', body)),
     update: (id: number, body: UpdateAssetBody) => unwrap<Asset>(api.patch(`/api/assets/${id}`, body)),
+    search: (q: string) => unwrap<SymbolMatch[]>(api.get('/api/assets/search', { params: { q } })),
     performance: async (id: number, range: DateRange) =>
         (await unwrap<PerformancePoint[]>(api.get(`/api/assets/${id}/performance`, { params: params(range) }))).map(
             mapPerformancePoint,

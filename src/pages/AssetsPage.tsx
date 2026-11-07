@@ -22,6 +22,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { QueryState } from '@/components/QueryState';
 import { AssetDialog } from '@/features/assets/AssetDialog';
 import { useAssets } from '@/features/portfolio/queries';
+import { formatMoney } from '@/lib/format';
 
 export default function AssetsPage() {
     const assets = useAssets();
@@ -57,6 +58,7 @@ export default function AssetsPage() {
                             <TableRow>
                                 <TableCell>Símbolo</TableCell>
                                 <TableCell>Nombre</TableCell>
+                                <TableCell align="right">Precio</TableCell>
                                 <TableCell>Moneda</TableCell>
                                 <TableCell align="right" />
                             </TableRow>
@@ -70,6 +72,7 @@ export default function AssetsPage() {
                                         </Link>
                                     </TableCell>
                                     <TableCell>{a.name}</TableCell>
+                                    <TableCell align="right">{formatMoney(a.currentPrice, a.currency)}</TableCell>
                                     <TableCell>
                                         <Chip label={a.currency} size="small" variant="outlined" />
                                     </TableCell>

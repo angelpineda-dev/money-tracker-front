@@ -7,12 +7,15 @@ export type User = Required<Schemas['User']>;
 export type Role = User['role'];
 export type Asset = Required<Schemas['Asset']>;
 export type Currency = Asset['currency'];
+/** Row of `GET /api/assets`: the asset plus its cached price (null until prices are refreshed). */
+export type AssetListItem = Required<Schemas['AssetWithPrice']>;
 export type TransactionType = Required<Schemas['Transaction']>['type'];
 export type Transaction = Omit<Required<Schemas['Transaction']>, 'asset'> & {
     asset: { symbol: string; currency: Currency };
 };
 export type SummaryRow = Omit<Required<Schemas['SummaryRow']>, 'asset'> & { asset: Asset };
 export type PerformancePoint = Required<Schemas['PerformancePoint']>;
+export type SymbolMatch = Required<Schemas['SymbolMatch']>;
 
 type JsonBody<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
     requestBody?: { content: { 'application/json': infer B } };

@@ -668,14 +668,14 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Lista de activos ordenada por símbolo */
+                /** @description Lista de activos ordenada por símbolo, con su precio actual en caché */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": components["schemas"]["SuccessEnvelope"] & {
-                            data?: components["schemas"]["Asset"][];
+                            data?: components["schemas"]["AssetWithPrice"][];
                         };
                     };
                 };
@@ -733,6 +733,77 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assets/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Buscar símbolos en Yahoo Finance
+         * @description Busca coincidencias por símbolo o nombre (acciones, ETFs y fondos) e identifica
+         *     la moneda de cotización. Solo devuelve resultados en monedas soportadas (MXN, USD);
+         *     el resto se omite. Resultados cacheados 10 minutos por consulta.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @example cuervo */
+                    q: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Coincidencias (puede ser lista vacía) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["SymbolMatch"][];
+                        };
+                    };
+                };
+                /** @description No autenticado */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Consulta vacía, menor a 2 o mayor a 20 caracteres */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Yahoo Finance no disponible; capturar el activo manualmente */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1243,6 +1314,34 @@ export interface components {
              * @enum {string}
              */
             currency?: "MXN" | "USD";
+        };
+        AssetWithPrice: components["schemas"]["Asset"] & {
+            /**
+             * @description Último precio en caché; null si aún no se ha actualizado
+             * @example 34.5
+             */
+            currentPrice?: number | null;
+        };
+        SymbolMatch: {
+            /** @example CUERVO.MX */
+            symbol?: string;
+            /** @example Becle, S.A.B. de C.V. */
+            name?: string;
+            /**
+             * @example MXN
+             * @enum {string}
+             */
+            currency?: "MXN" | "USD";
+            /**
+             * @description Bolsa como la muestra Yahoo Finance
+             * @example Mexico
+             */
+            exchange?: string;
+            /**
+             * @description Tipo de instrumento en Yahoo (EQUITY, ETF, MUTUALFUND)
+             * @example EQUITY
+             */
+            type?: string;
         };
         Transaction: {
             /** @example 1 */
