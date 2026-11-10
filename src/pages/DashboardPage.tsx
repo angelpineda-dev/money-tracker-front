@@ -10,6 +10,7 @@ import { useSummary } from '@/features/portfolio/queries';
 import { SummaryTable } from '@/features/portfolio/SummaryTable';
 import { TotalsCards } from '@/features/portfolio/TotalsCards';
 import { splitTraded, totalsByCurrency } from '@/features/portfolio/totals';
+import { PATHS } from '@/routes/paths';
 
 export default function DashboardPage() {
     const [range, setRange] = useState<DateRange>({});
@@ -29,7 +30,7 @@ export default function DashboardPage() {
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
                             <Typography>Aún no tienes activos registrados.</Typography>
-                            <Button component={RouterLink} to="/assets" variant="contained">
+                            <Button component={RouterLink} to={PATHS.investments.assets} variant="contained">
                                 Agregar un activo
                             </Button>
                         </Stack>
@@ -41,7 +42,7 @@ export default function DashboardPage() {
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
                             <Typography>Aún no registras operaciones en tus activos.</Typography>
-                            <Button component={RouterLink} to="/transactions" variant="contained">
+                            <Button component={RouterLink} to={PATHS.investments.transactions} variant="contained">
                                 Registrar una operación
                             </Button>
                         </Stack>
@@ -65,7 +66,7 @@ export default function DashboardPage() {
                     {untraded.map((r, i) => (
                         <Fragment key={r.asset.id}>
                             {i > 0 && ', '}
-                            <Link component={RouterLink} to={`/assets/${r.asset.id}`}>
+                            <Link component={RouterLink} to={PATHS.investments.asset(r.asset.id)}>
                                 {r.asset.symbol}
                             </Link>
                         </Fragment>

@@ -19,6 +19,8 @@ Frontend for the Money Tracker API (backend repo: `~/Code/nodejs/money-tracker`)
 - Never add MXN and USD amounts together. Format with `src/lib/format.ts`.
 - Query keys come from `src/api/queryKeys.ts`.
 - Route guards are layout routes in `src/routes/guards.tsx`; pages are lazy-loaded in `src/routes/router.tsx`.
+- The app has two sections, **Inversiones** (`/inversiones/*`) and **Gastos** (`/gastos/*`). Every in-app route lives in `PATHS` (`src/routes/paths.ts`); never write a path as a string literal. `SECTION` + `Record<Section, …>` drive the nav in `AppLayout.tsx`, so adding a section makes `tsc` flag what's missing. Old URLs (`/dashboard`, `/assets`, `/transactions`) redirect in `router.tsx`.
+- Expenses server state lives under one query-key root (`queryKeys.expenseSection`); every expenses mutation invalidates it, since an expense changes lists, the summary and debt balances. Debt balance is computed by the API; the front never recomputes it. Never mix currencies in totals or charts.
 - Style: Biome, 4 spaces, single quotes, semicolons, 120 columns. Run `npm run format` before committing.
 
 ## Structure

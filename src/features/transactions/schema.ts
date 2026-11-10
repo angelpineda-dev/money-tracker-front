@@ -6,7 +6,7 @@ export const TX_TYPES = ['COMPRA', 'VENTA'] as const satisfies readonly Transact
 /** Number inputs use `setValueAs: toOptionalNumber`; an empty field becomes undefined so zod reports "Requerido". */
 export const toOptionalNumber = (v: unknown) => (v === '' || v === null || v === undefined ? undefined : Number(v));
 
-const requiredNumber = (min: number) => z.number({ error: 'Requerido' }).min(min, 'Debe ser mayor a 0');
+export const requiredNumber = (min: number) => z.number({ error: 'Requerido' }).min(min, 'Debe ser mayor a 0');
 
 export const transactionSchema = z.object({
     assetId: z.number({ error: 'Elige un activo' }).int().positive('Elige un activo'),

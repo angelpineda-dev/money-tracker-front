@@ -19,11 +19,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { errorMessage } from '@/api/errors';
-import type { Asset, CreateAssetBody, Currency, SymbolMatch } from '@/api/types';
+import { type Asset, type CreateAssetBody, CURRENCIES, type SymbolMatch } from '@/api/types';
 import { useSaveAsset } from '@/features/portfolio/queries';
 import { SYMBOL_SEARCH_MIN_CHARS, useSymbolSearch } from './useSymbolSearch';
-
-const CURRENCIES = ['MXN', 'USD'] as const satisfies readonly Currency[];
 
 export const assetSchema = z.object({
     symbol: z

@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router';
+import { HOME } from '@/routes/paths';
 
 export default function NotFoundPage() {
     return (
@@ -11,7 +12,7 @@ export default function NotFoundPage() {
                 <Typography color="text.secondary" sx={{ mb: 3 }}>
                     La página que buscas no existe.
                 </Typography>
-                <Button component={RouterLink} to="/dashboard" variant="contained">
+                <Button component={RouterLink} to={HOME} variant="contained">
                     Ir al resumen
                 </Button>
             </Box>

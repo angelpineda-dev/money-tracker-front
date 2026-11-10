@@ -17,4 +17,14 @@ export const queryKeys = {
         all: ['summary'] as const,
         range: (range: DateRange) => ['summary', range] as const,
     },
+    /** Whole expenses section under one root: a new expense changes lists, summary and debt balances. */
+    expenseSection: {
+        all: ['expense-section'] as const,
+        categories: () => ['expense-section', 'categories'] as const,
+        list: (filters: object) => ['expense-section', 'list', filters] as const,
+        summary: (range: DateRange) => ['expense-section', 'summary', range] as const,
+        recurring: () => ['expense-section', 'recurring'] as const,
+        debts: () => ['expense-section', 'debts'] as const,
+        debt: (id: number) => ['expense-section', 'debts', id] as const,
+    },
 };

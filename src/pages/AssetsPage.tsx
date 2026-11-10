@@ -23,6 +23,7 @@ import { QueryState } from '@/components/QueryState';
 import { AssetDialog } from '@/features/assets/AssetDialog';
 import { useAssets } from '@/features/portfolio/queries';
 import { formatMoney } from '@/lib/format';
+import { PATHS } from '@/routes/paths';
 
 export default function AssetsPage() {
     const assets = useAssets();
@@ -67,7 +68,11 @@ export default function AssetsPage() {
                             {assets.data?.map((a) => (
                                 <TableRow key={a.id} hover>
                                     <TableCell>
-                                        <Link component={RouterLink} to={`/assets/${a.id}`} sx={{ fontWeight: 600 }}>
+                                        <Link
+                                            component={RouterLink}
+                                            to={PATHS.investments.asset(a.id)}
+                                            sx={{ fontWeight: 600 }}
+                                        >
                                             {a.symbol}
                                         </Link>
                                     </TableCell>

@@ -1,8 +1,12 @@
 import {
     AdminPanelSettingsOutlined,
+    CategoryOutlined,
+    CreditCardOutlined,
     DashboardOutlined,
+    EventRepeatOutlined,
     Logout,
     Menu as MenuIcon,
+    PaymentsOutlined,
     ReceiptLongOutlined,
     SettingsOutlined,
     ShowChart,
@@ -21,6 +25,8 @@ import {
     ListItemText,
     Menu,
     MenuItem,
+    ToggleButton,
+    ToggleButtonGroup,
     Toolbar,
     Tooltip,
     Typography,
@@ -28,11 +34,12 @@ import {
     useTheme,
 } from '@mui/material';
 import { type ReactNode, Suspense, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { ADMIN_ROLES, type Role } from '@/api/types';
 import { SplashScreen } from '@/components/SplashScreen';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLogout } from '@/hooks/useSession';
+import { PATHS, SECTION, SECTION_HOME, type Section, sectionOf } from '@/routes/paths';
 import { useAuthStore } from '@/stores/authStore';
 
 const DRAWER_WIDTH = 240;
@@ -44,12 +51,31 @@ interface NavItem {
     roles?: readonly Role[];
 }
 
-const NAV: NavItem[] = [
-    { to: '/dashboard', label: 'Resumen', icon: <DashboardOutlined /> },
-    { to: '/assets', label: 'Activos', icon: <WorkOutlineOutlined /> },
-    { to: '/transactions', label: 'Operaciones', icon: <ReceiptLongOutlined /> },
-    { to: '/settings', label: 'Configuración', icon: <SettingsOutlined /> },
-    { to: '/admin', label: 'Administración', icon: <AdminPanelSettingsOutlined />, roles: ADMIN_ROLES },
+/** Section-specific entries; one list per section so adding a section forces its nav (Record is exhaustive). */
+const SECTION_NAV: Record<Section, NavItem[]> = {
+    [SECTION.INVESTMENTS]: [
+        { to: PATHS.investments.dashboard, label: 'Resumen', icon: <DashboardOutlined /> },
+        { to: PATHS.investments.assets, label: 'Activos', icon: <WorkOutlineOutlined /> },
+        { to: PATHS.investments.transactions, label: 'Operaciones', icon: <ReceiptLongOutlined /> },
+    ],
+    [SECTION.EXPENSES]: [
+        { to: PATHS.expenses.summary, label: 'Resumen', icon: <DashboardOutlined /> },
+        { to: PATHS.expenses.list, label: 'Movimientos', icon: <PaymentsOutlined /> },
+        { to: PATHS.expenses.recurring, label: 'Recurrentes', icon: <EventRepeatOutlined /> },
+        { to: PATHS.expenses.debts, label: 'Deudas', icon: <CreditCardOutlined /> },
+        { to: PATHS.expenses.categories, label: 'Categorías', icon: <CategoryOutlined /> },
+    ],
+};
+
+const SECTION_LABEL: Record<Section, string> = {
+    [SECTION.INVESTMENTS]: 'Inversiones',
+    [SECTION.EXPENSES]: 'Gastos',
+};
+
+/** Entries shown in every section. */
+const GLOBAL_NAV: NavItem[] = [
+    { to: PATHS.settings, label: 'Configuración', icon: <SettingsOutlined /> },
+    { to: PATHS.admin, label: 'Administración', icon: <AdminPanelSettingsOutlined />, roles: ADMIN_ROLES },
 ];
 
 export function AppLayout() {
@@ -57,30 +83,52 @@ export function AppLayout() {
     const desktop = useMediaQuery(theme.breakpoints.up('md'));
     const [mobileOpen, setMobileOpen] = useState(false);
     const user = useAuthStore((s) => s.user);
-    const items = NAV.filter((item) => !item.roles || (user && item.roles.includes(user.role)));
+    const navigate = useNavigate();
+    const section = sectionOf(useLocation().pathname);
+    const visible = (item: NavItem) => !item.roles || (user && item.roles.includes(user.role));
+
+    const renderItems = (items: NavItem[]) =>
+        items.filter(visible).map((item) => (
+            <ListItemButton
+                key={item.to}
+                component={NavLink}
+                to={item.to}
+                onClick={() => setMobileOpen(false)}
+                sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    '&.active': { bgcolor: 'action.selected', color: 'primary.main' },
+                    '&.active .MuiListItemIcon-root': { color: 'primary.main' },
+                }}
+            >
+                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+            </ListItemButton>
+        ));
 
     const nav = (
         <>
             <Toolbar />
-            <List sx={{ px: 1 }}>
-                {items.map((item) => (
-                    <ListItemButton
-                        key={item.to}
-                        component={NavLink}
-                        to={item.to}
-                        onClick={() => setMobileOpen(false)}
-                        sx={{
-                            borderRadius: 2,
-                            mb: 0.5,
-                            '&.active': { bgcolor: 'action.selected', color: 'primary.main' },
-                            '&.active .MuiListItemIcon-root': { color: 'primary.main' },
-                        }}
-                    >
-                        <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                        <ListItemText primary={item.label} />
-                    </ListItemButton>
-                ))}
-            </List>
+            <Box sx={{ px: 1.5, pt: 1.5 }}>
+                <ToggleButtonGroup
+                    fullWidth
+                    size="small"
+                    exclusive
+                    color="primary"
+                    value={section}
+                    onChange={(_, next: Section | null) => next && navigate(SECTION_HOME[next])}
+                    aria-label="Sección"
+                >
+                    {Object.values(SECTION).map((s) => (
+                        <ToggleButton key={s} value={s}>
+                            {SECTION_LABEL[s]}
+                        </ToggleButton>
+                    ))}
+                </ToggleButtonGroup>
+            </Box>
+            <List sx={{ px: 1 }}>{renderItems(SECTION_NAV[section])}</List>
+            <Divider sx={{ mx: 1 }} />
+            <List sx={{ px: 1 }}>{renderItems(GLOBAL_NAV)}</List>
         </>
     );
 
@@ -160,7 +208,7 @@ function UserMenu() {
                 <MenuItem
                     onClick={() => {
                         setAnchor(null);
-                        navigate('/settings');
+                        navigate(PATHS.settings);
                     }}
                 >
                     <ListItemIcon>

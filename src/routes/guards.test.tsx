@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { ADMIN_ROLES, type User } from '@/api/types';
 import { useAuthStore } from '@/stores/authStore';
 import { PublicOnly, RequireAuth, RequireRole } from './guards';
+import { HOME } from './paths';
 
 function renderAt(path: string) {
     const router = createMemoryRouter(
@@ -12,7 +13,7 @@ function renderAt(path: string) {
             {
                 element: <RequireAuth />,
                 children: [
-                    { path: '/dashboard', element: <p>dashboard page</p> },
+                    { path: HOME, element: <p>dashboard page</p> },
                     {
                         element: <RequireRole roles={ADMIN_ROLES} />,
                         children: [{ path: '/admin', element: <p>admin page</p> }],
@@ -35,7 +36,7 @@ describe('route guards', () => {
     beforeEach(() => useAuthStore.getState().clear());
 
     it('redirects anonymous users to /login', async () => {
-        const router = renderAt('/dashboard');
+        const router = renderAt(HOME);
         expect(await screen.findByText('login page')).toBeInTheDocument();
         expect(router.state.location.pathname).toBe('/login');
     });

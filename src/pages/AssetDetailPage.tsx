@@ -13,6 +13,7 @@ import { useAssetPerformance, useAssets, useTransactions } from '@/features/port
 import { TransactionDialog } from '@/features/transactions/TransactionDialog';
 import { TransactionsTable } from '@/features/transactions/TransactionsTable';
 import { formatDate, formatMoney } from '@/lib/format';
+import { PATHS } from '@/routes/paths';
 
 export default function AssetDetailPage() {
     const id = Number(useParams().id);
@@ -28,7 +29,7 @@ export default function AssetDetailPage() {
             <Alert
                 severity="warning"
                 action={
-                    <Button component={RouterLink} to="/assets" color="inherit" size="small">
+                    <Button component={RouterLink} to={PATHS.investments.assets} color="inherit" size="small">
                         Volver
                     </Button>
                 }
@@ -43,7 +44,7 @@ export default function AssetDetailPage() {
 
     return (
         <>
-            <Button component={RouterLink} to="/assets" startIcon={<ArrowBack />} sx={{ mb: 1 }}>
+            <Button component={RouterLink} to={PATHS.investments.assets} startIcon={<ArrowBack />} sx={{ mb: 1 }}>
                 Activos
             </Button>
             <PageHeader

@@ -27,6 +27,14 @@ tags:
     description: Resumen y rendimiento del portafolio
   - name: prices
     description: Cotizaciones desde Yahoo Finance
+  - name: expense-categories
+    description: Categorías de gasto definidas por el usuario
+  - name: expenses
+    description: Gastos diarios y resumen de gastos
+  - name: recurring-payments
+    description: Pagos recurrentes (un cron diario genera el gasto en su fecha)
+  - name: debts
+    description: Deudas propias con abonos
 
 components:
   securitySchemes:
@@ -144,6 +152,118 @@ components:
               type: string
             currency:
               type: string
+
+    ExpenseCategory:
+      type: object
+      properties:
+        id: {type: integer, example: 1}
+        name: {type: string, example: Comida}
+        color: {type: string, nullable: true, example: "#ff8800"}
+
+    Expense:
+      type: object
+      properties:
+        id: {type: integer, example: 1}
+        categoryId: {type: integer, example: 1}
+        amount: {type: number, example: 189.5}
+        currency: {type: string, enum: [MXN, USD]}
+        spentAt: {type: string, format: date, example: "2026-01-10"}
+        description: {type: string, example: Tacos}
+        notes: {type: string, nullable: true}
+        recurringPaymentId: {type: integer, nullable: true, description: "Pago recurrente que lo generó"}
+        debtId: {type: integer, nullable: true, description: "Deuda a la que abona"}
+        category:
+          type: object
+          properties:
+            id: {type: integer}
+            name: {type: string}
+            color: {type: string, nullable: true}
+        debt:
+          type: object
+          nullable: true
+          properties:
+            id: {type: integer}
+            name: {type: string}
+
+    RecurringPayment:
+      type: object
+      properties:
+        id: {type: integer, example: 1}
+        categoryId: {type: integer}
+        name: {type: string, example: Netflix}
+        amount: {type: number, example: 219}
+        currency: {type: string, enum: [MXN, USD]}
+        frequency: {type: string, enum: [WEEKLY, MONTHLY, YEARLY]}
+        nextRunAt: {type: string, format: date, description: "Próxima fecha en que se generará el gasto"}
+        active: {type: boolean}
+        category:
+          type: object
+          properties:
+            id: {type: integer}
+            name: {type: string}
+            color: {type: string, nullable: true}
+
+    DebtPayment:
+      type: object
+      properties:
+        id: {type: integer}
+        amount: {type: number}
+        currency: {type: string, enum: [MXN, USD]}
+        spentAt: {type: string, format: date}
+        description: {type: string}
+        categoryId: {type: integer}
+
+    Debt:
+      type: object
+      properties:
+        id: {type: integer, example: 1}
+        name: {type: string, example: Tarjeta de crédito}
+        creditor: {type: string, nullable: true}
+        totalAmount: {type: number, example: 12000}
+        currency: {type: string, enum: [MXN, USD]}
+        dueDate: {type: string, format: date, nullable: true}
+        paidAmount: {type: number, readOnly: true, description: "Suma de abonos"}
+        balance: {type: number, readOnly: true, description: "totalAmount − paidAmount; ≤ 0 = liquidada"}
+
+    DebtDetail:
+      allOf:
+        - $ref: '#/components/schemas/Debt'
+        - type: object
+          properties:
+            payments:
+              type: array
+              items:
+                $ref: '#/components/schemas/DebtPayment'
+
+    ExpenseSummary:
+      type: object
+      description: Los totales nunca mezclan monedas; cada fila lleva su `currency`.
+      properties:
+        totals:
+          type: array
+          items:
+            type: object
+            properties:
+              currency: {type: string, enum: [MXN, USD]}
+              total: {type: number}
+        byCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryId: {type: integer}
+              name: {type: string}
+              color: {type: string, nullable: true}
+              currency: {type: string, enum: [MXN, USD]}
+              total: {type: number}
+        byMonth:
+          type: array
+          items:
+            type: object
+            properties:
+              month: {type: string, example: "2026-01"}
+              currency: {type: string, enum: [MXN, USD]}
+              total: {type: number}
 
     SummaryRow:
       type: object
@@ -1006,6 +1126,612 @@ paths:
                         items:
                           $ref: '#/components/schemas/SummaryRow'
 
+  /api/expense-categories:
+    get:
+      tags: [expense-categories]
+      summary: Listar categorías
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ExpenseCategory'
+    post:
+      tags: [expense-categories]
+      summary: Crear categoría
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: {type: string, maxLength: 40}
+                color: {type: string, example: "#ff8800", description: "#RRGGBB"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExpenseCategory'
+        '409':
+          description: Nombre repetido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/expense-categories/{id}:
+    patch:
+      tags: [expense-categories]
+      summary: Editar categoría
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: {type: string, maxLength: 40}
+                color: {type: string, nullable: true, example: "#ff8800", description: "#RRGGBB; null lo quita"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExpenseCategory'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Nombre repetido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [expense-categories]
+      summary: Eliminar categoría
+      security:
+        - bearerAuth: []
+      description: 409 si tiene gastos o pagos recurrentes.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: En uso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/expenses:
+    get:
+      tags: [expenses]
+      summary: Listar gastos
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: categoryId
+          schema:
+            type: integer
+          description: Filtrar por categoría
+        - in: query
+          name: currency
+          schema:
+            type: string
+            enum: [MXN, USD]
+          description: Filtrar por moneda
+        - in: query
+          name: debtId
+          schema:
+            type: integer
+          description: Solo abonos de una deuda
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          description: Desde fecha
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          description: Hasta fecha
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Expense'
+    post:
+      tags: [expenses]
+      summary: Registrar gasto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoryId, amount, currency, spentAt, description]
+              properties:
+                categoryId: {type: integer}
+                amount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                spentAt: {type: string, format: date}
+                description: {type: string, maxLength: 200}
+                notes: {type: string, maxLength: 500}
+                debtId: {type: integer, description: "Abono a esa deuda; misma moneda que la deuda"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Expense'
+        '404':
+          description: Categoría o deuda inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validación o moneda distinta a la deuda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/expenses/{id}:
+    patch:
+      tags: [expenses]
+      summary: Editar gasto
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoryId: {type: integer}
+                amount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                spentAt: {type: string, format: date}
+                description: {type: string, maxLength: 200}
+                notes: {type: string, nullable: true, maxLength: 500}
+                debtId: {type: integer, nullable: true, description: "Abono a esa deuda (misma moneda); null lo desvincula"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Expense'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [expenses]
+      summary: Eliminar gasto
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/expenses/summary:
+    get:
+      tags: [expenses]
+      summary: Resumen de gastos
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          description: Desde fecha
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          description: Hasta fecha
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExpenseSummary'
+  /api/recurring-payments:
+    get:
+      tags: [recurring-payments]
+      summary: Listar pagos recurrentes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RecurringPayment'
+    post:
+      tags: [recurring-payments]
+      summary: Crear pago recurrente
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoryId, name, amount, currency, frequency, nextRunAt]
+              properties:
+                categoryId: {type: integer}
+                name: {type: string, maxLength: 120}
+                amount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                frequency: {type: string, enum: [WEEKLY, MONTHLY, YEARLY]}
+                nextRunAt: {type: string, format: date, description: "Primera fecha de cobro; su día del mes ancla los siguientes cobros"}
+                active: {type: boolean, default: true}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RecurringPayment'
+        '404':
+          description: Categoría inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/recurring-payments/{id}:
+    patch:
+      tags: [recurring-payments]
+      summary: Editar o pausar pago recurrente
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoryId: {type: integer}
+                name: {type: string, maxLength: 120}
+                amount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                frequency: {type: string, enum: [WEEKLY, MONTHLY, YEARLY]}
+                nextRunAt: {type: string, format: date, description: "Primera fecha de cobro; su día del mes ancla los siguientes cobros"}
+                active: {type: boolean, default: true}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RecurringPayment'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [recurring-payments]
+      summary: Eliminar pago recurrente
+      security:
+        - bearerAuth: []
+      description: Los gastos ya generados se conservan.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/debts:
+    get:
+      tags: [debts]
+      summary: Listar deudas con saldo
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Debt'
+    post:
+      tags: [debts]
+      summary: Crear deuda
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, totalAmount, currency]
+              properties:
+                name: {type: string, maxLength: 120}
+                creditor: {type: string, maxLength: 120}
+                totalAmount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                dueDate: {type: string, format: date}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DebtDetail'
+  /api/debts/{id}:
+    get:
+      tags: [debts]
+      summary: Detalle de deuda con abonos
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DebtDetail'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags: [debts]
+      summary: Editar deuda
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: {type: string, maxLength: 120}
+                creditor: {type: string, nullable: true, maxLength: 120}
+                totalAmount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                dueDate: {type: string, format: date, nullable: true}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DebtDetail'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Total menor a lo abonado o moneda distinta a los abonos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [debts]
+      summary: Eliminar deuda
+      security:
+        - bearerAuth: []
+      description: Los abonos se conservan como gastos normales.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/prices/refresh:
     post:
       tags: [prices]

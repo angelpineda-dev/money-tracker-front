@@ -1226,6 +1226,848 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/expense-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar categorías */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["ExpenseCategory"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Crear categoría */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * @description #RRGGBB
+                         * @example #ff8800
+                         */
+                        color?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["ExpenseCategory"];
+                        };
+                    };
+                };
+                /** @description Nombre repetido */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Validación */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar categoría
+         * @description 409 si tiene gastos o pagos recurrentes.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Eliminada */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"];
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description En uso */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Editar categoría */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        /**
+                         * @description #RRGGBB; null lo quita
+                         * @example #ff8800
+                         */
+                        color?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["ExpenseCategory"];
+                        };
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Nombre repetido */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar gastos */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filtrar por categoría */
+                    categoryId?: number;
+                    /** @description Filtrar por moneda */
+                    currency?: "MXN" | "USD";
+                    /** @description Solo abonos de una deuda */
+                    debtId?: number;
+                    /** @description Desde fecha */
+                    from?: string;
+                    /** @description Hasta fecha */
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Expense"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Registrar gasto */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        categoryId: number;
+                        amount: number;
+                        /** @enum {string} */
+                        currency: "MXN" | "USD";
+                        /** Format: date */
+                        spentAt: string;
+                        description: string;
+                        notes?: string;
+                        /** @description Abono a esa deuda; misma moneda que la deuda */
+                        debtId?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Expense"];
+                        };
+                    };
+                };
+                /** @description Categoría o deuda inexistente */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Validación o moneda distinta a la deuda */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expenses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Eliminar gasto */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Eliminado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"];
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Editar gasto */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        categoryId?: number;
+                        amount?: number;
+                        /** @enum {string} */
+                        currency?: "MXN" | "USD";
+                        /** Format: date */
+                        spentAt?: string;
+                        description?: string;
+                        notes?: string | null;
+                        /** @description Abono a esa deuda (misma moneda); null lo desvincula */
+                        debtId?: number | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Expense"];
+                        };
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/expenses/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumen de gastos */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Desde fecha */
+                    from?: string;
+                    /** @description Hasta fecha */
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["ExpenseSummary"];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recurring-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar pagos recurrentes */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["RecurringPayment"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Crear pago recurrente */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        categoryId: number;
+                        name: string;
+                        amount: number;
+                        /** @enum {string} */
+                        currency: "MXN" | "USD";
+                        /** @enum {string} */
+                        frequency: "WEEKLY" | "MONTHLY" | "YEARLY";
+                        /**
+                         * Format: date
+                         * @description Primera fecha de cobro; su día del mes ancla los siguientes cobros
+                         */
+                        nextRunAt: string;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["RecurringPayment"];
+                        };
+                    };
+                };
+                /** @description Categoría inexistente */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recurring-payments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar pago recurrente
+         * @description Los gastos ya generados se conservan.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Eliminado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"];
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Editar o pausar pago recurrente */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        categoryId?: number;
+                        name?: string;
+                        amount?: number;
+                        /** @enum {string} */
+                        currency?: "MXN" | "USD";
+                        /** @enum {string} */
+                        frequency?: "WEEKLY" | "MONTHLY" | "YEARLY";
+                        /**
+                         * Format: date
+                         * @description Primera fecha de cobro; su día del mes ancla los siguientes cobros
+                         */
+                        nextRunAt?: string;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["RecurringPayment"];
+                        };
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/debts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar deudas con saldo */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Debt"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Crear deuda */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        creditor?: string;
+                        totalAmount: number;
+                        /** @enum {string} */
+                        currency: "MXN" | "USD";
+                        /** Format: date */
+                        dueDate?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["DebtDetail"];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/debts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalle de deuda con abonos */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["DebtDetail"];
+                        };
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar deuda
+         * @description Los abonos se conservan como gastos normales.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Eliminada */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"];
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Editar deuda */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        creditor?: string | null;
+                        totalAmount?: number;
+                        /** @enum {string} */
+                        currency?: "MXN" | "USD";
+                        /** Format: date */
+                        dueDate?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["DebtDetail"];
+                        };
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Total menor a lo abonado o moneda distinta a los abonos */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/prices/refresh": {
         parameters: {
             query?: never;
@@ -1377,6 +2219,122 @@ export interface components {
                 symbol?: string;
                 currency?: string;
             };
+        };
+        ExpenseCategory: {
+            /** @example 1 */
+            id?: number;
+            /** @example Comida */
+            name?: string;
+            /** @example #ff8800 */
+            color?: string | null;
+        };
+        Expense: {
+            /** @example 1 */
+            id?: number;
+            /** @example 1 */
+            categoryId?: number;
+            /** @example 189.5 */
+            amount?: number;
+            /** @enum {string} */
+            currency?: "MXN" | "USD";
+            /**
+             * Format: date
+             * @example 2026-01-10
+             */
+            spentAt?: string;
+            /** @example Tacos */
+            description?: string;
+            notes?: string | null;
+            /** @description Pago recurrente que lo generó */
+            recurringPaymentId?: number | null;
+            /** @description Deuda a la que abona */
+            debtId?: number | null;
+            category?: {
+                id?: number;
+                name?: string;
+                color?: string | null;
+            };
+            debt?: {
+                id?: number;
+                name?: string;
+            } | null;
+        };
+        RecurringPayment: {
+            /** @example 1 */
+            id?: number;
+            categoryId?: number;
+            /** @example Netflix */
+            name?: string;
+            /** @example 219 */
+            amount?: number;
+            /** @enum {string} */
+            currency?: "MXN" | "USD";
+            /** @enum {string} */
+            frequency?: "WEEKLY" | "MONTHLY" | "YEARLY";
+            /**
+             * Format: date
+             * @description Próxima fecha en que se generará el gasto
+             */
+            nextRunAt?: string;
+            active?: boolean;
+            category?: {
+                id?: number;
+                name?: string;
+                color?: string | null;
+            };
+        };
+        DebtPayment: {
+            id?: number;
+            amount?: number;
+            /** @enum {string} */
+            currency?: "MXN" | "USD";
+            /** Format: date */
+            spentAt?: string;
+            description?: string;
+            categoryId?: number;
+        };
+        Debt: {
+            /** @example 1 */
+            id?: number;
+            /** @example Tarjeta de crédito */
+            name?: string;
+            creditor?: string | null;
+            /** @example 12000 */
+            totalAmount?: number;
+            /** @enum {string} */
+            currency?: "MXN" | "USD";
+            /** Format: date */
+            dueDate?: string | null;
+            /** @description Suma de abonos */
+            readonly paidAmount?: number;
+            /** @description totalAmount − paidAmount; ≤ 0 = liquidada */
+            readonly balance?: number;
+        };
+        DebtDetail: components["schemas"]["Debt"] & {
+            payments?: components["schemas"]["DebtPayment"][];
+        };
+        /** @description Los totales nunca mezclan monedas; cada fila lleva su `currency`. */
+        ExpenseSummary: {
+            totals?: {
+                /** @enum {string} */
+                currency?: "MXN" | "USD";
+                total?: number;
+            }[];
+            byCategory?: {
+                categoryId?: number;
+                name?: string;
+                color?: string | null;
+                /** @enum {string} */
+                currency?: "MXN" | "USD";
+                total?: number;
+            }[];
+            byMonth?: {
+                /** @example 2026-01 */
+                month?: string;
+                /** @enum {string} */
+                currency?: "MXN" | "USD";
+                total?: number;
+            }[];
         };
         SummaryRow: {
             asset?: components["schemas"]["Asset"];

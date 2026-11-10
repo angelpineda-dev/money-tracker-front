@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapAssetListItem, mapSummaryRow, mapTransaction } from './mappers';
+import { mapAssetListItem, mapDebt, mapExpenseSummary, mapSummaryRow, mapTransaction } from './mappers';
 import type { AssetListItem, SummaryRow, Transaction } from './types';
 
 describe('mapSummaryRow', () => {
@@ -56,5 +56,44 @@ describe('mapTransaction', () => {
             pricePerShare: 32.5,
             fees: 45,
         });
+    });
+});
+
+describe('expense mappers', () => {
+    it('coerces decimals and trims dates on debts', () => {
+        const debt = mapDebt({
+            id: 1,
+            name: 'Tarjeta',
+            creditor: null,
+            totalAmount: '1000.0000' as unknown as number,
+            currency: 'MXN',
+            dueDate: '2026-03-01T00:00:00.000Z',
+            paidAmount: 250,
+            balance: '750' as unknown as number,
+        });
+        expect(debt).toMatchObject({ totalAmount: 1000, balance: 750, dueDate: '2026-03-01' });
+    });
+
+    it('keeps a missing due date null', () => {
+        const debt = mapDebt({
+            id: 1,
+            name: 'x',
+            creditor: null,
+            totalAmount: 1,
+            currency: 'USD',
+            dueDate: null,
+            paidAmount: 0,
+            balance: 1,
+        });
+        expect(debt.dueDate).toBeNull();
+    });
+
+    it('maps summary totals to numbers', () => {
+        const s = mapExpenseSummary({
+            totals: [{ currency: 'MXN', total: '12.5' as unknown as number }],
+            byCategory: [],
+            byMonth: [],
+        });
+        expect(s.totals[0]?.total).toBe(12.5);
     });
 });

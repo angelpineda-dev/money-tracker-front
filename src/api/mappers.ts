@@ -1,4 +1,14 @@
-import type { AssetListItem, PerformancePoint, SummaryRow, Transaction } from './types';
+import type {
+    AssetListItem,
+    Debt,
+    DebtDetail,
+    Expense,
+    ExpenseSummary,
+    PerformancePoint,
+    RecurringPayment,
+    SummaryRow,
+    Transaction,
+} from './types';
 
 /**
  * Prisma Decimal columns are serialized as strings. Every numeric field coming from the API
@@ -54,5 +64,38 @@ export function mapPerformancePoint(p: PerformancePoint): PerformancePoint {
         value: toNullableNumber(p.value),
         invested: toNumber(p.invested),
         price: toNullableNumber(p.price),
+    };
+}
+
+export function mapExpense(e: Expense): Expense {
+    return { ...e, amount: toNumber(e.amount), spentAt: toDateOnly(e.spentAt) };
+}
+
+export function mapRecurring(r: RecurringPayment): RecurringPayment {
+    return { ...r, amount: toNumber(r.amount), nextRunAt: toDateOnly(r.nextRunAt) };
+}
+
+export function mapDebt(d: Debt): Debt {
+    return {
+        ...d,
+        totalAmount: toNumber(d.totalAmount),
+        paidAmount: toNumber(d.paidAmount),
+        balance: toNumber(d.balance),
+        dueDate: d.dueDate ? toDateOnly(d.dueDate) : null,
+    };
+}
+
+export function mapDebtDetail(d: DebtDetail): DebtDetail {
+    return {
+        ...mapDebt(d),
+        payments: d.payments.map((p) => ({ ...p, amount: toNumber(p.amount), spentAt: toDateOnly(p.spentAt) })),
+    };
+}
+
+export function mapExpenseSummary(s: ExpenseSummary): ExpenseSummary {
+    return {
+        totals: s.totals.map((t) => ({ ...t, total: toNumber(t.total) })),
+        byCategory: s.byCategory.map((t) => ({ ...t, total: toNumber(t.total) })),
+        byMonth: s.byMonth.map((t) => ({ ...t, total: toNumber(t.total) })),
     };
 }

@@ -13,6 +13,7 @@ import { Link as RouterLink } from 'react-router';
 import type { SummaryRow } from '@/api/types';
 import { GainText } from '@/components/GainText';
 import { formatMoney, formatPercent } from '@/lib/format';
+import { PATHS } from '@/routes/paths';
 
 const qty = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 6 });
 
@@ -43,7 +44,11 @@ export function SummaryTable({ rows }: { rows: SummaryRow[] }) {
                         return (
                             <TableRow key={r.asset.id} hover sx={{ opacity: r.position > 0 ? 1 : 0.6 }}>
                                 <TableCell>
-                                    <Link component={RouterLink} to={`/assets/${r.asset.id}`} sx={{ fontWeight: 600 }}>
+                                    <Link
+                                        component={RouterLink}
+                                        to={PATHS.investments.asset(r.asset.id)}
+                                        sx={{ fontWeight: 600 }}
+                                    >
                                         {r.asset.symbol}
                                     </Link>
                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
