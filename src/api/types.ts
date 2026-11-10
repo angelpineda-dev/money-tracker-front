@@ -19,6 +19,8 @@ export type Expense = Omit<Required<Schemas['Expense']>, 'category' | 'debt'> & 
     category: { id: number; name: string; color: string | null };
     debt: { id: number; name: string } | null;
 };
+export type Income = Required<Schemas['Income']>;
+export type CashflowMonth = Required<Schemas['CashflowMonth']>;
 export type RecurringPayment = Omit<Required<Schemas['RecurringPayment']>, 'category'> & {
     category: { id: number; name: string; color: string | null };
 };
@@ -53,6 +55,8 @@ export type CreateCategoryBody = JsonBody<'/api/expense-categories', 'post'>;
 export type UpdateCategoryBody = JsonBody<'/api/expense-categories/{id}', 'patch'>;
 export type CreateExpenseBody = JsonBody<'/api/expenses', 'post'>;
 export type UpdateExpenseBody = JsonBody<'/api/expenses/{id}', 'patch'>;
+export type CreateIncomeBody = JsonBody<'/api/income', 'post'>;
+export type UpdateIncomeBody = JsonBody<'/api/income/{id}', 'patch'>;
 export type CreateRecurringBody = JsonBody<'/api/recurring-payments', 'post'>;
 export type UpdateRecurringBody = JsonBody<'/api/recurring-payments/{id}', 'patch'>;
 export type CreateDebtBody = JsonBody<'/api/debts', 'post'>;

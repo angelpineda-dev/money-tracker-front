@@ -1,9 +1,11 @@
 import type {
     AssetListItem,
+    CashflowMonth,
     Debt,
     DebtDetail,
     Expense,
     ExpenseSummary,
+    Income,
     PerformancePoint,
     RecurringPayment,
     SummaryRow,
@@ -97,5 +99,18 @@ export function mapExpenseSummary(s: ExpenseSummary): ExpenseSummary {
         totals: s.totals.map((t) => ({ ...t, total: toNumber(t.total) })),
         byCategory: s.byCategory.map((t) => ({ ...t, total: toNumber(t.total) })),
         byMonth: s.byMonth.map((t) => ({ ...t, total: toNumber(t.total) })),
+    };
+}
+
+export function mapIncome(i: Income): Income {
+    return { ...i, amount: toNumber(i.amount), receivedAt: toDateOnly(i.receivedAt) };
+}
+
+export function mapCashflowMonth(c: CashflowMonth): CashflowMonth {
+    return {
+        ...c,
+        income: toNumber(c.income),
+        expenses: toNumber(c.expenses),
+        balance: toNumber(c.balance),
     };
 }

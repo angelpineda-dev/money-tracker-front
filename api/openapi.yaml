@@ -31,6 +31,8 @@ tags:
     description: Categorías de gasto definidas por el usuario
   - name: expenses
     description: Gastos diarios y resumen de gastos
+  - name: income
+    description: Ingresos y flujo mensual (ingresos vs gastos)
   - name: recurring-payments
     description: Pagos recurrentes (un cron diario genera el gasto en su fecha)
   - name: debts
@@ -184,6 +186,46 @@ components:
           properties:
             id: {type: integer}
             name: {type: string}
+
+    Income:
+      type: object
+      properties:
+        id: {type: integer, example: 1}
+        amount: {type: number, example: 15000}
+        currency: {type: string, enum: [MXN, USD]}
+        receivedAt: {type: string, format: date, example: "2026-01-15"}
+        description: {type: string, example: Nómina}
+        notes: {type: string, nullable: true}
+
+    IncomeSummary:
+      type: object
+      description: Los totales nunca mezclan monedas; cada fila lleva su `currency`.
+      properties:
+        totals:
+          type: array
+          items:
+            type: object
+            properties:
+              currency: {type: string, enum: [MXN, USD]}
+              total: {type: number}
+        byMonth:
+          type: array
+          items:
+            type: object
+            properties:
+              month: {type: string, example: "2026-01"}
+              currency: {type: string, enum: [MXN, USD]}
+              total: {type: number}
+
+    CashflowMonth:
+      type: object
+      description: Ingresos vs gastos de un mes en una moneda. `balance` = `income` − `expenses`.
+      properties:
+        month: {type: string, example: "2026-01"}
+        currency: {type: string, enum: [MXN, USD]}
+        income: {type: number}
+        expenses: {type: number}
+        balance: {type: number}
 
     RecurringPayment:
       type: object
@@ -1453,6 +1495,211 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ExpenseSummary'
+  /api/income:
+    get:
+      tags: [income]
+      summary: Listar ingresos
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: currency
+          schema:
+            type: string
+            enum: [MXN, USD]
+          description: Filtrar por moneda
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          description: Desde fecha
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          description: Hasta fecha
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Income'
+    post:
+      tags: [income]
+      summary: Registrar ingreso
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, currency, receivedAt, description]
+              properties:
+                amount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                receivedAt: {type: string, format: date}
+                description: {type: string, maxLength: 200}
+                notes: {type: string, maxLength: 500}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Income'
+        '422':
+          description: Validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/income/{id}:
+    patch:
+      tags: [income]
+      summary: Editar ingreso
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: {type: number, minimum: 0.0001}
+                currency: {type: string, enum: [MXN, USD]}
+                receivedAt: {type: string, format: date}
+                description: {type: string, maxLength: 200}
+                notes: {type: string, nullable: true, maxLength: 500}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Income'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [income]
+      summary: Eliminar ingreso
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          description: No existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/income/summary:
+    get:
+      tags: [income]
+      summary: Resumen de ingresos
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          description: Desde fecha
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          description: Hasta fecha
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/IncomeSummary'
+  /api/income/cashflow:
+    get:
+      tags: [income]
+      summary: Ingresos vs gastos por mes
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          description: Desde fecha
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          description: Hasta fecha
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CashflowMonth'
   /api/recurring-payments:
     get:
       tags: [recurring-payments]

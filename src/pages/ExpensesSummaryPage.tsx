@@ -5,7 +5,8 @@ import type { DateRange } from '@/api/queryKeys';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
 import { PageHeader } from '@/components/PageHeader';
 import { QueryState } from '@/components/QueryState';
-import { useExpenseSummary } from '@/features/expenses/queries';
+import { CashflowSection } from '@/features/expenses/CashflowSection';
+import { useCashflow, useExpenseSummary } from '@/features/expenses/queries';
 import { SummaryCharts } from '@/features/expenses/SummaryCharts';
 import { formatMoney } from '@/lib/format';
 import { PATHS } from '@/routes/paths';
@@ -13,7 +14,9 @@ import { PATHS } from '@/routes/paths';
 export default function ExpensesSummaryPage() {
     const [range, setRange] = useState<DateRange>({});
     const summary = useExpenseSummary(range);
+    const cashflow = useCashflow(range);
     const data = summary.data;
+    const months = cashflow.data ?? [];
 
     return (
         <>
@@ -22,7 +25,7 @@ export default function ExpensesSummaryPage() {
                 <DateRangeFilter value={range} onChange={setRange} />
             </Box>
             <QueryState isPending={summary.isPending} error={summary.error} onRetry={() => summary.refetch()} />
-            {data && data.totals.length === 0 && (
+            {data && data.totals.length === 0 && months.length === 0 && (
                 <Card>
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
@@ -34,8 +37,9 @@ export default function ExpensesSummaryPage() {
                     </CardContent>
                 </Card>
             )}
-            {data && data.totals.length > 0 && (
+            {data && (data.totals.length > 0 || months.length > 0) && (
                 <Stack spacing={3} sx={{ opacity: summary.isPlaceholderData ? 0.6 : 1, transition: 'opacity .2s' }}>
+                    {months.length > 0 && <CashflowSection months={months} />}
                     <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
                         {data.totals.map((t) => (
                             <Card key={t.currency}>
@@ -51,7 +55,7 @@ export default function ExpensesSummaryPage() {
                             </Card>
                         ))}
                     </Box>
-                    <SummaryCharts summary={data} />
+                    {data.totals.length > 0 && <SummaryCharts summary={data} />}
                 </Stack>
             )}
         </>

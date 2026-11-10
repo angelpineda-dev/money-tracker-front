@@ -3,6 +3,7 @@ import {
     type CreateCategoryBody,
     type CreateDebtBody,
     type CreateExpenseBody,
+    type CreateIncomeBody,
     type CreateRecurringBody,
     CURRENCIES,
     FREQUENCIES,
@@ -38,6 +39,14 @@ export const expenseSchema = z.object({
     debtId: z.number().int().positive().optional(),
 }) satisfies z.ZodType<CreateExpenseBody, unknown>;
 
+export const incomeSchema = z.object({
+    amount: requiredNumber(0.0001),
+    currency: z.enum(CURRENCIES),
+    receivedAt: isoDate,
+    description: z.string().trim().min(1, 'Requerido').max(200, 'Máximo 200 caracteres'),
+    notes: optionalText(500),
+}) satisfies z.ZodType<CreateIncomeBody, unknown>;
+
 export const recurringSchema = z.object({
     categoryId,
     name: z.string().trim().min(1, 'Requerido').max(120, 'Máximo 120 caracteres'),
@@ -64,6 +73,8 @@ export type CategoryFormIn = z.input<typeof categorySchema>;
 export type CategoryFormOut = z.output<typeof categorySchema>;
 export type ExpenseFormIn = z.input<typeof expenseSchema>;
 export type ExpenseFormOut = z.output<typeof expenseSchema>;
+export type IncomeFormIn = z.input<typeof incomeSchema>;
+export type IncomeFormOut = z.output<typeof incomeSchema>;
 export type RecurringFormIn = z.input<typeof recurringSchema>;
 export type RecurringFormOut = z.output<typeof recurringSchema>;
 export type DebtFormIn = z.input<typeof debtSchema>;

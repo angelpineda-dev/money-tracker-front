@@ -8,6 +8,7 @@ import {
     Menu as MenuIcon,
     PaymentsOutlined,
     ReceiptLongOutlined,
+    SavingsOutlined,
     SettingsOutlined,
     ShowChart,
     WorkOutlineOutlined,
@@ -61,6 +62,7 @@ const SECTION_NAV: Record<Section, NavItem[]> = {
     [SECTION.EXPENSES]: [
         { to: PATHS.expenses.summary, label: 'Resumen', icon: <DashboardOutlined /> },
         { to: PATHS.expenses.list, label: 'Movimientos', icon: <PaymentsOutlined /> },
+        { to: PATHS.expenses.income, label: 'Ingresos', icon: <SavingsOutlined /> },
         { to: PATHS.expenses.recurring, label: 'Recurrentes', icon: <EventRepeatOutlined /> },
         { to: PATHS.expenses.debts, label: 'Deudas', icon: <CreditCardOutlined /> },
         { to: PATHS.expenses.categories, label: 'Categorías', icon: <CategoryOutlined /> },

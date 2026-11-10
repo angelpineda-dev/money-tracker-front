@@ -1,10 +1,20 @@
 import { api, unwrap } from './client';
-import { mapDebt, mapDebtDetail, mapExpense, mapExpenseSummary, mapRecurring } from './mappers';
+import {
+    mapCashflowMonth,
+    mapDebt,
+    mapDebtDetail,
+    mapExpense,
+    mapExpenseSummary,
+    mapIncome,
+    mapRecurring,
+} from './mappers';
 import type { DateRange } from './queryKeys';
 import type {
+    CashflowMonth,
     CreateCategoryBody,
     CreateDebtBody,
     CreateExpenseBody,
+    CreateIncomeBody,
     CreateRecurringBody,
     Currency,
     Debt,
@@ -12,10 +22,12 @@ import type {
     Expense,
     ExpenseCategory,
     ExpenseSummary,
+    Income,
     RecurringPayment,
     UpdateCategoryBody,
     UpdateDebtBody,
     UpdateExpenseBody,
+    UpdateIncomeBody,
     UpdateRecurringBody,
 } from './types';
 
@@ -47,6 +59,23 @@ export const expensesApi = {
     remove: (id: number) => unwrap<undefined>(api.delete(`/api/expenses/${id}`)),
     summary: async (range: DateRange) =>
         mapExpenseSummary(await unwrap<ExpenseSummary>(api.get('/api/expenses/summary', { params: params(range) }))),
+};
+
+export interface IncomeFilters extends DateRange {
+    currency?: Currency;
+}
+
+export const incomeApi = {
+    list: async (filters: IncomeFilters) =>
+        (await unwrap<Income[]>(api.get('/api/income', { params: params(filters) }))).map(mapIncome),
+    create: async (body: CreateIncomeBody) => mapIncome(await unwrap<Income>(api.post('/api/income', body))),
+    update: async (id: number, body: UpdateIncomeBody) =>
+        mapIncome(await unwrap<Income>(api.patch(`/api/income/${id}`, body))),
+    remove: (id: number) => unwrap<undefined>(api.delete(`/api/income/${id}`)),
+    cashflow: async (range: DateRange) =>
+        (await unwrap<CashflowMonth[]>(api.get('/api/income/cashflow', { params: params(range) }))).map(
+            mapCashflowMonth,
+        ),
 };
 
 export const recurringApi = {

@@ -1669,6 +1669,272 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/income": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar ingresos */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filtrar por moneda */
+                    currency?: "MXN" | "USD";
+                    /** @description Desde fecha */
+                    from?: string;
+                    /** @description Hasta fecha */
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Income"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Registrar ingreso */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        amount: number;
+                        /** @enum {string} */
+                        currency: "MXN" | "USD";
+                        /** Format: date */
+                        receivedAt: string;
+                        description: string;
+                        notes?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Income"];
+                        };
+                    };
+                };
+                /** @description Validación */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/income/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Eliminar ingreso */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Eliminado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"];
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Editar ingreso */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        amount?: number;
+                        /** @enum {string} */
+                        currency?: "MXN" | "USD";
+                        /** Format: date */
+                        receivedAt?: string;
+                        description?: string;
+                        notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["Income"];
+                        };
+                    };
+                };
+                /** @description No existe */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/income/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumen de ingresos */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Desde fecha */
+                    from?: string;
+                    /** @description Hasta fecha */
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["IncomeSummary"];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/income/cashflow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ingresos vs gastos por mes */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Desde fecha */
+                    from?: string;
+                    /** @description Hasta fecha */
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessEnvelope"] & {
+                            data?: components["schemas"]["CashflowMonth"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recurring-payments": {
         parameters: {
             query?: never;
@@ -2258,6 +2524,47 @@ export interface components {
                 id?: number;
                 name?: string;
             } | null;
+        };
+        Income: {
+            /** @example 1 */
+            id?: number;
+            /** @example 15000 */
+            amount?: number;
+            /** @enum {string} */
+            currency?: "MXN" | "USD";
+            /**
+             * Format: date
+             * @example 2026-01-15
+             */
+            receivedAt?: string;
+            /** @example Nómina */
+            description?: string;
+            notes?: string | null;
+        };
+        /** @description Los totales nunca mezclan monedas; cada fila lleva su `currency`. */
+        IncomeSummary: {
+            totals?: {
+                /** @enum {string} */
+                currency?: "MXN" | "USD";
+                total?: number;
+            }[];
+            byMonth?: {
+                /** @example 2026-01 */
+                month?: string;
+                /** @enum {string} */
+                currency?: "MXN" | "USD";
+                total?: number;
+            }[];
+        };
+        /** @description Ingresos vs gastos de un mes en una moneda. `balance` = `income` − `expenses`. */
+        CashflowMonth: {
+            /** @example 2026-01 */
+            month?: string;
+            /** @enum {string} */
+            currency?: "MXN" | "USD";
+            income?: number;
+            expenses?: number;
+            balance?: number;
         };
         RecurringPayment: {
             /** @example 1 */

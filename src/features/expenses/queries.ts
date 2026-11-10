@@ -1,14 +1,24 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { debtsApi, type ExpenseFilters, expenseCategoriesApi, expensesApi, recurringApi } from '@/api/expenses';
+import {
+    debtsApi,
+    type ExpenseFilters,
+    expenseCategoriesApi,
+    expensesApi,
+    type IncomeFilters,
+    incomeApi,
+    recurringApi,
+} from '@/api/expenses';
 import { type DateRange, queryKeys } from '@/api/queryKeys';
 import type {
     CreateCategoryBody,
     CreateDebtBody,
     CreateExpenseBody,
+    CreateIncomeBody,
     CreateRecurringBody,
     UpdateCategoryBody,
     UpdateDebtBody,
     UpdateExpenseBody,
+    UpdateIncomeBody,
     UpdateRecurringBody,
 } from '@/api/types';
 
@@ -108,4 +118,34 @@ export function useSaveDebt() {
 export function useDeleteDebt() {
     const invalidate = useInvalidateExpenses();
     return useMutation({ mutationFn: debtsApi.remove, onSuccess: invalidate });
+}
+
+export function useIncome(filters: IncomeFilters) {
+    return useQuery({
+        queryKey: queryKeys.expenseSection.income(filters),
+        queryFn: () => incomeApi.list(filters),
+        placeholderData: keepPreviousData,
+    });
+}
+
+export function useCashflow(range: DateRange) {
+    return useQuery({
+        queryKey: queryKeys.expenseSection.cashflow(range),
+        queryFn: () => incomeApi.cashflow(range),
+        placeholderData: keepPreviousData,
+    });
+}
+
+export function useSaveIncome() {
+    const invalidate = useInvalidateExpenses();
+    return useMutation({
+        mutationFn: ({ id, body }: SaveVars<CreateIncomeBody, UpdateIncomeBody>) =>
+            id === undefined ? incomeApi.create(body as CreateIncomeBody) : incomeApi.update(id, body),
+        onSuccess: invalidate,
+    });
+}
+
+export function useDeleteIncome() {
+    const invalidate = useInvalidateExpenses();
+    return useMutation({ mutationFn: incomeApi.remove, onSuccess: invalidate });
 }

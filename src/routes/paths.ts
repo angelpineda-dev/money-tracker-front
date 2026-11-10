@@ -21,6 +21,7 @@ export const PATHS = {
     expenses: {
         summary: `/${SECTION.EXPENSES}/resumen`,
         list: `/${SECTION.EXPENSES}/movimientos`,
+        income: `/${SECTION.EXPENSES}/ingresos`,
         recurring: `/${SECTION.EXPENSES}/recurrentes`,
         debts: `/${SECTION.EXPENSES}/deudas`,
         debt: (id: number | string) => `/${SECTION.EXPENSES}/deudas/${id}`,

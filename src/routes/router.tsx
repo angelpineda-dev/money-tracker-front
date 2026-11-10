@@ -46,6 +46,7 @@ export const routes: RouteObject[] = [
                             // Expenses section
                             { path: PATHS.expenses.summary, lazy: page(() => import('@/pages/ExpensesSummaryPage')) },
                             { path: PATHS.expenses.list, lazy: page(() => import('@/pages/ExpensesPage')) },
+                            { path: PATHS.expenses.income, lazy: page(() => import('@/pages/IncomePage')) },
                             { path: PATHS.expenses.recurring, lazy: page(() => import('@/pages/RecurringPage')) },
                             { path: PATHS.expenses.debts, lazy: page(() => import('@/pages/DebtsPage')) },
                             { path: PATHS.expenses.debt(':id'), lazy: page(() => import('@/pages/DebtDetailPage')) },
